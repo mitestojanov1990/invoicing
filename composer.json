@@ -2,8 +2,15 @@
     "name": "user/modern_invoicing",
     "description": "Simple modernized invoice application with edit/remove lines.",
     "require": {
-      "php": ">=7.4",
-      "mpdf/mpdf": "^8.0"
+        "php": ">=7.4",
+        "mpdf/mpdf": "^8.0",
+        "google/apiclient": "^2.18",
+        "robmorgan/phinx": "^0.16.6",
+        "vlucas/phpdotenv": "^5.5",
+        "symfony/config": "^6.0",
+        "symfony/console": "^6.0",
+        "symfony/filesystem": "^6.0",
+        "symfony/string": "^6.0"
     },
     "autoload": {
       "psr-4": {
@@ -11,4 +18,3 @@
       }
     }
   }
-  
