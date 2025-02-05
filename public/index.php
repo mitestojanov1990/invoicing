@@ -113,6 +113,10 @@ if ($uri === '/auth/google') {
 }
 
 if ($uri === '/invoices') {
+    if (!isset($_SESSION[SESSION_USER])) {
+        header('Location: /auth/google');
+        exit;
+    }
     if ($method === 'GET') {
         $invoiceController->index();
     }
