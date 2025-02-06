@@ -36,7 +36,6 @@ ob_start();
     </table>
     <button type="button" id="add-line-btn">Add Line</button>
 
-    <!-- We'll store the lines in hidden inputs or post them via JS -->
     <input type="hidden" name="lines" id="lines-json" />
 
     <br/><br/>
@@ -58,27 +57,22 @@ function renderLines() {
     lines.forEach((line, index) => {
         const tr = document.createElement('tr');
 
-        // Description
         let tdDesc = document.createElement('td');
         tdDesc.innerHTML = `<input type="text" data-index="${index}" data-field="description" value="${line.description}" />`;
         tr.appendChild(tdDesc);
 
-        // Quantity
         let tdQty = document.createElement('td');
         tdQty.innerHTML = `<input type="number" step="any" data-index="${index}" data-field="quantity" value="${line.quantity}" />`;
         tr.appendChild(tdQty);
 
-        // Price
         let tdPrice = document.createElement('td');
         tdPrice.innerHTML = `<input type="number" step="any" data-index="${index}" data-field="price" value="${line.price}" />`;
         tr.appendChild(tdPrice);
 
-        // Total
         let tdTotal = document.createElement('td');
         tdTotal.innerText = line.total.toFixed(2);
         tr.appendChild(tdTotal);
 
-        // Remove
         let tdRemove = document.createElement('td');
         tdRemove.innerHTML = `<button type="button" data-index="${index}" class="remove-line">X</button>`;
         tr.appendChild(tdRemove);
@@ -92,13 +86,11 @@ function renderLines() {
     updateHidden();
 }
 
-// Event delegation
 document.getElementById('lines-table').addEventListener('input', function(e){
     const index = e.target.getAttribute('data-index');
     const field = e.target.getAttribute('data-field');
     if (index !== null && field) {
         lines[index][field] = e.target.value;
-        // auto-calc total
         lines[index].total = (lines[index].quantity * lines[index].price) || 0;
         renderLines();
     }
@@ -117,9 +109,6 @@ function updateHidden() {
 }
 
 document.getElementById('create-form').addEventListener('submit', function(e){
-    // Convert lines to separate fields or keep as JSON
-    // We'll convert them to an array with name="lines[index][field]"
-    // But for simplicity, let's keep JSON in hidden input
 });
 
 </script>

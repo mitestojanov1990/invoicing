@@ -6,12 +6,6 @@ use PDO;
 use Exception;
 
 require_once __DIR__ . '/../../config/database.php';
-// id (INT AI),
-// invoice_id (INT),
-// description (VARCHAR),
-// quantity (DECIMAL(10,2)),
-// price (DECIMAL(10,2)),
-// total (DECIMAL(10,2))
 
 class InvoiceLine
 {

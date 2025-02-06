@@ -6,25 +6,16 @@ use PDO;
 use Exception;
 
 require_once __DIR__ . '/../../config/database.php';
-// id (INT AI),
-// invoice_number (VARCHAR),
-// invoice_date (DATE),
-// to_name (VARCHAR),
-// city (VARCHAR),
-// invoice_type (TINYINT),
-// created_at (DATETIME),
-// updated_at (DATETIME)
+
 class Invoice
 {
     public int $id;
     public string $invoice_number;
-    public string $invoice_date; // e.g. 'YYYY-mm-dd'
+    public string $invoice_date;
     public string $to_name;
     public string $city;
-    public int $invoice_type;    // 1=faktura, 2=profaktura, 3=ponuda
+    public int $invoice_type; 
 
-    // For demonstration, not showing all possible columns. 
-    // In real usage, add all needed columns/properties.
     public static function create(array $data): int
     {
         $pdo = getPDO();
@@ -59,7 +50,7 @@ class Invoice
         $invoice = $stmt->fetch();
         return $invoice ?: null;
     }
-    
+
     public static function update(int $id, array $data): bool
     {
         $pdo = getPDO();
@@ -85,7 +76,6 @@ class Invoice
     public static function delete(int $id): bool
     {
         $pdo = getPDO();
-        // Also delete invoice lines associated with this invoice
         $pdo->beginTransaction();
         try {
             $lineStmt = $pdo->prepare("DELETE FROM invoice_lines WHERE invoice_id = :id");

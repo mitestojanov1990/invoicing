@@ -9,7 +9,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use App\Controllers\InvoiceController;
 use App\Controllers\AuthController;
 
-session_start(); // Ensure sessions are started
+session_start();
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
@@ -42,7 +42,6 @@ if ($uri === '/auth/google') {
 }
 
 if ($uri === '/invoices') {
-    // If not logged in, redirect to Google
     if (!isset($_SESSION['user_email'])) {
         header('Location: /auth/google');
         exit;
@@ -56,7 +55,6 @@ if ($uri === '/invoices') {
     }
 } elseif ($uri === '/invoices/store') {
     if ($method === 'POST') {
-        // lines come as JSON in $_POST['lines'], decode before sending to store
         if (!empty($_POST['lines'])) {
             $_POST['lines'] = json_decode($_POST['lines'], true);
         }
@@ -68,7 +66,6 @@ if ($uri === '/invoices') {
     }
 } elseif (preg_match('#^/invoices/(\d+)/update$#', $uri, $matches)) {
     if ($method === 'POST') {
-        // lines come as JSON, decode
         if (!empty($_POST['lines'])) {
             $_POST['lines'] = json_decode($_POST['lines'], true);
         }

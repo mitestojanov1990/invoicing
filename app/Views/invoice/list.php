@@ -1,6 +1,5 @@
 <?php 
 // app/Views/invoice/list.php
-// We'll skip the layout include for brevity; you could embed or do something like:
 ob_start(); 
 ?>
 <h1>All Invoices</h1>

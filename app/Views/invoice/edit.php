@@ -42,45 +42,29 @@ ob_start();
 </form>
 
 <script>
-let lines = <?= json_encode($lines) ?>; // existing lines from DB
-/*
- Each line like:
- {
-   "id": 123,
-   "invoice_id": 10,
-   "description": "Desc",
-   "quantity": 2,
-   "price": 10,
-   "total": 20
- }
-*/
+let lines = <?= json_encode($lines) ?>; 
 
 function renderLines() {
     const tbody = document.createElement('tbody');
     lines.forEach((line, index) => {
         const tr = document.createElement('tr');
 
-        // Description
         let tdDesc = document.createElement('td');
         tdDesc.innerHTML = `<input type="text" data-index="${index}" data-field="description" value="${line.description}" />`;
         tr.appendChild(tdDesc);
 
-        // Quantity
         let tdQty = document.createElement('td');
         tdQty.innerHTML = `<input type="number" step="any" data-index="${index}" data-field="quantity" value="${line.quantity}" />`;
         tr.appendChild(tdQty);
 
-        // Price
         let tdPrice = document.createElement('td');
         tdPrice.innerHTML = `<input type="number" step="any" data-index="${index}" data-field="price" value="${line.price}" />`;
         tr.appendChild(tdPrice);
 
-        // Total
         let tdTotal = document.createElement('td');
         tdTotal.innerText = parseFloat(line.total).toFixed(2);
         tr.appendChild(tdTotal);
 
-        // Remove
         let tdRemove = document.createElement('td');
         tdRemove.innerHTML = `<button type="button" data-index="${index}" class="remove-line">X</button>`;
         tr.appendChild(tdRemove);
@@ -107,8 +91,6 @@ document.getElementById('lines-table').addEventListener('input', function(e){
 document.getElementById('lines-table').addEventListener('click', function(e){
     if(e.target.classList.contains('remove-line')) {
         const index = e.target.getAttribute('data-index');
-        // lines[index] has an id; we can set something like lines[index]._delete=true
-        // or remove it from array:
         lines.splice(index, 1);
         renderLines();
     }

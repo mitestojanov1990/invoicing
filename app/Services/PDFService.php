@@ -9,10 +9,6 @@ class PDFService
 {
     public static function generateInvoicePDF(array $invoice, array $lines): string
     {
-        // $invoice is the invoice record from DB
-        // $lines is an array of invoice line records
-
-        // Figure out heading from invoice_type
         $t_type = (int)$invoice['invoice_type'];
         switch ($t_type) {
             case 1: $title = "Фактура бр."; break;
@@ -21,7 +17,6 @@ class PDFService
             default: $title = "Фактура бр.";
         }
 
-        // Build lines HTML
         $lineRows = '';
         $grandTotal = 0;
         foreach ($lines as $l) {
@@ -78,16 +73,11 @@ class PDFService
         $fullPath = "$dir/$fileName";
         $mpdf->Output($fileName, 'D');
 
-        // You might save the PDF doc name in your archive tables:
-        // e.g. InvoiceArchive::save(...)
-        // or do it here as needed.
-
         return $fullPath;
     }
 
     private static function getDirByType(int $type): string
     {
-        // Adjust as needed for your structure
         $base = __DIR__ . '/../../public/documents';
         switch ($type) {
             case 1: return $base . '/fakturi';
