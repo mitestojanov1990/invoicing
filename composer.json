@@ -2,8 +2,9 @@
     "name": "user/modern_invoicing",
     "description": "Simple modernized invoice application with edit/remove lines.",
     "require": {
-      "php": ">=7.4",
-      "mpdf/mpdf": "^8.0"
+        "php": ">=7.4",
+        "mpdf/mpdf": "^8.0",
+        "google/apiclient": "^2.18"
     },
     "autoload": {
       "psr-4": {
@@ -11,4 +12,3 @@
       }
     }
   }
-  

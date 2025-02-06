@@ -11,21 +11,36 @@ class InvoiceController
     // Show all invoices
     public function index()
     {
-        $invoices = Invoice::all();
+        if (empty($_SESSION['user'])) {
+            header('Location: /auth/google');
+            exit;
+        }
+        $userId   = (int)$_SESSION['user']['id'];
+        $invoices = Invoice::allForUser($userId);
         require __DIR__ . '/../Views/invoice/list.php';
     }
 
     // Show create form
     public function create()
     {
+        if (empty($_SESSION['user'])) {
+            header('Location: /auth/google');
+            exit;
+        }
         require __DIR__ . '/../Views/invoice/create.php';
     }
 
     // Store new invoice (and its lines)
     public function store()
     {
-        // Basic example, not heavily validated
+        if (empty($_SESSION['user'])) {
+            header('Location: /auth/google');
+            exit;
+        }
+        $userId = (int)$_SESSION['user']['id'];
+
         $invoiceData = [
+            'user_id'        => $userId,
             'invoice_number' => $_POST['invoice_number'] ?? '',
             'invoice_date'   => $_POST['invoice_date'] ?? date('Y-m-d'),
             'to_name'        => $_POST['to_name'] ?? '',
@@ -33,8 +48,8 @@ class InvoiceController
             'invoice_type'   => (int)($_POST['invoice_type'] ?? 1)
         ];
 
-        // 1) Create invoice
         $invoiceId = Invoice::create($invoiceData);
+
 
         // 2) Create each invoice line
         // Expecting line data from e.g. $_POST['lines'] as JSON or repeated fields
@@ -59,10 +74,15 @@ class InvoiceController
     // Show edit form for an invoice
     public function edit($id)
     {
-        $invoice = Invoice::find($id);
+        if (empty($_SESSION['user'])) {
+            header('Location: /auth/google');
+            exit;
+        }
+        $userId  = (int)$_SESSION['user']['id'];
+        $invoice = Invoice::findForUser($id, $userId);
         if (!$invoice) {
-            http_response_code(404);
-            echo "Invoice not found.";
+            http_response_code(403);
+            echo "Invoice not found or permission denied.";
             return;
         }
         $lines = InvoiceLine::findByInvoice($id);
@@ -72,6 +92,10 @@ class InvoiceController
     // Update existing invoice
     public function update($id)
     {
+        if (empty($_SESSION['user'])) {
+            header('Location: /auth/google');
+            exit;
+        }
         $invoiceData = [
             'invoice_number' => $_POST['invoice_number'] ?? '',
             'invoice_date'   => $_POST['invoice_date'] ?? date('Y-m-d'),
@@ -116,6 +140,10 @@ class InvoiceController
     // Delete entire invoice (and lines)
     public function destroy($id)
     {
+        if (empty($_SESSION['user'])) {
+            header('Location: /auth/google');
+            exit;
+        }
         Invoice::delete($id);
         header('Location: /invoices');
         exit;
@@ -124,6 +152,10 @@ class InvoiceController
     // Delete a single invoice line (via AJAX or a form)
     public function destroyLine($lineId)
     {
+        if (empty($_SESSION['user'])) {
+            header('Location: /auth/google');
+            exit;
+        }
         InvoiceLine::delete($lineId);
         // Usually return JSON or redirect
         echo json_encode(['success' => true]);
@@ -132,7 +164,12 @@ class InvoiceController
     // Generate PDF for a given invoice
     public function generatePDF($id)
     {
-        $invoice = Invoice::find($id);
+        if (empty($_SESSION['user'])) {
+            header('Location: /auth/google');
+            exit;
+        }
+        $userId  = (int)$_SESSION['user']['id'];
+        $invoice = Invoice::findForUser($id, $userId);
         if (!$invoice) {
             http_response_code(404);
             echo "Invoice not found.";

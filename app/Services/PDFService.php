@@ -76,7 +76,7 @@ class PDFService
         }
 
         $fullPath = "$dir/$fileName";
-        $mpdf->Output($fullPath, 'F');
+        $mpdf->Output($fileName, 'D');
 
         // You might save the PDF doc name in your archive tables:
         // e.g. InvoiceArchive::save(...)

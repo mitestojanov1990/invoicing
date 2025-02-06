@@ -1,15 +1,21 @@
 <?php
 // public/index.php
 
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Controllers\InvoiceController;
+use App\Controllers\AuthController;
+
+session_start(); // Ensure sessions are started
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+
 $invoiceController = new InvoiceController();
+$authController = new AuthController();
 
 /**
  * Basic routes:
@@ -21,7 +27,26 @@ $invoiceController = new InvoiceController();
  * GET  /invoices/{id}/delete    => $invoiceController->destroy($id)
  * GET  /invoices/{id}/pdf       => $invoiceController->generatePDF($id)
  */
+
+
+// Basic router
+
+if ($uri === '/auth/google') {
+    // GET /auth/google => redirect to google
+    $authController->googleLogin();
+} elseif ($uri === '/auth/google/callback') {
+    // GET /auth/google/callback => handle google's redirect
+    $authController->googleCallback();
+} elseif ($uri === '/logout') {
+    $authController->logout();
+}
+
 if ($uri === '/invoices') {
+    // If not logged in, redirect to Google
+    if (!isset($_SESSION['user_email'])) {
+        header('Location: /auth/google');
+        exit;
+    }
     if ($method === 'GET') {
         $invoiceController->index();
     }
