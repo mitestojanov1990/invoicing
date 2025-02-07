@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    environment: production
+    environment: Production
     runs-on: ubuntu-20.04
 
     steps:
