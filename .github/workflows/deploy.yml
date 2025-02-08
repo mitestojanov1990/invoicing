@@ -5,22 +5,49 @@ on:
     branches: [ "main" ]  # Adjust the branch as needed
 
 jobs:
-  deploy:
+  build-frontend:
     runs-on: ubuntu-20.04
-
     steps:
-      - name: Check out repository
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Deploy via SSH
+      - name: List repository root
+        run: ls -la
+
+      - name: List frontend directory
+        run: ls -la Frontend
+        
+      - name: Install frontend dependencies and build
+        working-directory: frontend
+        run: |
+          ls -la  # Verify package-lock.json exists here
+          npm ci --include=dev
+          npm run build
+          
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist
+
+  deploy:
+    needs: build-frontend
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Download frontend build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist
+
+      - name: Deploy Backend via SSH
         uses: appleboy/ssh-action@v0.1.6
         with:
-          host: ${{ secrets.SSH_HOST }}       # Droplet's IP or hostname
-          username: invoicing                 # SSH user on your Droplet
-          key: ${{ secrets.SSH_KEY }}         # Private key stored as a secret
+          host: ${{ secrets.SSH_HOST }}
+          username: invoicing
+          key: ${{ secrets.SSH_KEY }}
           script: |
             echo "Creating .env file..."
-            # Create .env in the project root (/var/www/html/invoicing)
             cat > /var/www/html/invoicing/.env <<'EOF'
             DB_HOST=${{ secrets.DB_HOST }}
             DB_NAME=${{ secrets.DB_NAME }}
@@ -33,9 +60,7 @@ jobs:
             EOF
             echo ".env file created."
             
-            # Navigate to project root
             cd /var/www/html/invoicing
-
             echo "Pulling latest code from GitHub..."
             git pull origin main
 
@@ -43,22 +68,25 @@ jobs:
             composer install --no-dev --optimize-autoloader
 
             echo "Running Phinx migrations..."
-            # With updated phinx.php, .env will be loaded from the project root.
             php vendor/bin/phinx migrate -e production
 
-            echo "Building frontend..."
-            cd frontend
-            # Ensure npm is in PATH. Adjust the path as needed.
-            export PATH=/usr/local/bin:$PATH
-            npm ci
-            npm run build
-            cd ..
+      - name: Deploy Frontend Build via SCP
+        uses: appleboy/scp-action@v0.1.6
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: invoicing
+          key: ${{ secrets.SSH_KEY }}
+          # Copy the contents of frontend/dist (the built files) to the target folder "/var/www/html/invoicing/app/"
+          source: "frontend/dist/*"
+          target: "/var/www/html/invoicing/app/"
 
-            echo "Deploying frontend build..."
-            # Copy the frontend build (Vite output) into the public folder.
-            rsync -av --delete frontend/dist/ public/
-
+      - name: Reload Apache via SSH
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: invoicing
+          key: ${{ secrets.SSH_KEY }}
+          script: |
             echo "Reloading Apache..."
             echo "${{ secrets.SUDO_PASS }}" | sudo -S systemctl reload apache2
-
             echo "Deployment finished successfully!"
