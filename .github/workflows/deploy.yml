@@ -8,23 +8,10 @@ jobs:
   deploy:
     runs-on: ubuntu-20.04
 
-    env:
-      DB_HOST: ${{ secrets.DB_HOST }}
-      DB_NAME: ${{ secrets.DB_NAME }}
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_PASS: ${{ secrets.DB_PASS }}
-      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-      GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
         
-      - name: Debug Environment
-        run: |
-          echo "GOOGLE_REDIRECT_URI is: $GOOGLE_REDIRECT_URI"
-          env | grep GOOGLE
-
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.6
         with:
@@ -34,12 +21,12 @@ jobs:
           script: |
             echo "Creating .env file..."
             cat > /var/www/html/invoicing/.env <<'EOF'
-            DB_HOST=${DB_HOST}
-            DB_NAME=${DB_NAME}
-            DB_USER=${DB_USER}
-            DB_PASS=${DB_PASS}
-            GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-            GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASS=${{ secrets.DB_PASS }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}
             EOF
             echo ".env file created."
