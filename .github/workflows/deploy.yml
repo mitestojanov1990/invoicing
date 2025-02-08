@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
-        
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.6
         with:
@@ -20,11 +20,13 @@ jobs:
           key: ${{ secrets.SSH_KEY }}         # Private key stored as a secret
           script: |
             echo "Creating .env file..."
+            # Create .env in the project root (/var/www/html/invoicing)
             cat > /var/www/html/invoicing/.env <<'EOF'
             DB_HOST=${{ secrets.DB_HOST }}
             DB_NAME=${{ secrets.DB_NAME }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PASS=${{ secrets.DB_PASS }}
+            DB_PORT=${{ secrets.DB_PORT }}
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}
@@ -41,10 +43,13 @@ jobs:
             composer install --no-dev --optimize-autoloader
 
             echo "Running Phinx migrations..."
+            # With updated phinx.php, .env will be loaded from the project root.
             php vendor/bin/phinx migrate -e production
 
             echo "Building frontend..."
             cd frontend
+            # Ensure npm is in PATH. Adjust the path as needed.
+            export PATH=/usr/local/bin:$PATH
             npm ci
             npm run build
             cd ..
@@ -52,16 +57,6 @@ jobs:
             echo "Deploying frontend build..."
             # Copy the frontend build (Vite output) into the public folder.
             rsync -av --delete frontend/dist/ public/
-
-            # Check if Apache reverse proxy config is already deployed;
-            # if not, copy it from deploy/apache.conf and enable the site.
-            if [ ! -f /etc/apache2/sites-available/invoicing.conf ]; then
-              echo "Deploying reverse proxy configuration..."
-              sudo cp deploy/apache.conf /etc/apache2/sites-available/invoicing.conf
-              sudo a2ensite invoicing.conf
-            else
-              echo "Reverse proxy configuration already exists."
-            fi
 
             echo "Reloading Apache..."
             sudo systemctl reload apache2
