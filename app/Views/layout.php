@@ -35,11 +35,11 @@
           <a class="nav-link" href="/invoices/create">Create Invoice</a>
         </li>
         <li class="nav-item">
-          <?php if (empty($_SESSION['user_email'])): ?>
+          <?php if (empty($_SESSION[SESSION_USER])): ?>
               <a class="nav-link" href="/auth/google">Login with Google</a>
           <?php else: ?>
               
-              <a class="nav-link" href="/logout">Hello, <?= htmlspecialchars($_SESSION['user_name'] ?? '') ?> | Logout</a>
+              <a class="nav-link" href="/logout">Hello, <?= htmlspecialchars($_SESSION[SESSION_USER]['name'] ?? '') ?> | Logout</a>
           <?php endif; ?>
       </ul>
     </div>

@@ -10,18 +10,18 @@ class InvoiceController
 {
     public function index()
     {
-        if (empty($_SESSION['user'])) {
+        if (empty($_SESSION[SESSION_USER])) {
             header('Location: /auth/google');
             exit;
         }
-        $userId   = (int)$_SESSION['user']['id'];
+        $userId   = (int)$_SESSION[SESSION_USER]['id'];
         $invoices = Invoice::allForUser($userId);
         require __DIR__ . '/../Views/invoice/list.php';
     }
 
     public function create()
     {
-        if (empty($_SESSION['user'])) {
+        if (empty($_SESSION[SESSION_USER])) {
             header('Location: /auth/google');
             exit;
         }
@@ -30,11 +30,11 @@ class InvoiceController
 
     public function store()
     {
-        if (empty($_SESSION['user'])) {
+        if (empty($_SESSION[SESSION_USER])) {
             header('Location: /auth/google');
             exit;
         }
-        $userId = (int)$_SESSION['user']['id'];
+        $userId = (int)$_SESSION[SESSION_USER]['id'];
 
         $invoiceData = [
             'user_id'        => $userId,
@@ -67,11 +67,11 @@ class InvoiceController
 
     public function edit($id)
     {
-        if (empty($_SESSION['user'])) {
+        if (empty($_SESSION[SESSION_USER])) {
             header('Location: /auth/google');
             exit;
         }
-        $userId  = (int)$_SESSION['user']['id'];
+        $userId  = (int)$_SESSION[SESSION_USER]['id'];
         $invoice = Invoice::findForUser($id, $userId);
         if (!$invoice) {
             http_response_code(403);
@@ -84,7 +84,7 @@ class InvoiceController
 
     public function update($id)
     {
-        if (empty($_SESSION['user'])) {
+        if (empty($_SESSION[SESSION_USER])) {
             header('Location: /auth/google');
             exit;
         }
@@ -125,7 +125,7 @@ class InvoiceController
 
     public function destroy($id)
     {
-        if (empty($_SESSION['user'])) {
+        if (empty($_SESSION[SESSION_USER])) {
             header('Location: /auth/google');
             exit;
         }
@@ -136,7 +136,7 @@ class InvoiceController
 
     public function destroyLine($lineId)
     {
-        if (empty($_SESSION['user'])) {
+        if (empty($_SESSION[SESSION_USER])) {
             header('Location: /auth/google');
             exit;
         }
@@ -146,11 +146,11 @@ class InvoiceController
 
     public function generatePDF($id)
     {
-        if (empty($_SESSION['user'])) {
+        if (empty($_SESSION[SESSION_USER])) {
             header('Location: /auth/google');
             exit;
         }
-        $userId  = (int)$_SESSION['user']['id'];
+        $userId  = (int)$_SESSION[SESSION_USER]['id'];
         $invoice = Invoice::findForUser($id, $userId);
         if (!$invoice) {
             http_response_code(404);

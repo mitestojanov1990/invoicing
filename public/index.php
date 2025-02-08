@@ -1,18 +1,19 @@
 <?php
 // public/index.php
 
+session_start();
+
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../config/constants.php';
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->load();
 
 use App\Controllers\InvoiceController;
 use App\Controllers\AuthController;
-
-session_start();
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
@@ -42,10 +43,16 @@ if ($uri === '/auth/google') {
     $authController->googleCallback();
 } elseif ($uri === '/logout') {
     $authController->logout();
+} else {
+    if (!isset($_SESSION[SESSION_USER])) {
+        // If not logged in, redirect to Google authentication
+        header('Location: /auth/google');
+        exit;
+    }
 }
 
 if ($uri === '/invoices') {
-    if (!isset($_SESSION['user_email'])) {
+    if (!isset($_SESSION[SESSION_USER])) {
         header('Location: /auth/google');
         exit;
     }

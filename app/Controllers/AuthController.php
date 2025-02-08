@@ -18,13 +18,15 @@ class AuthController
         $this->client->setClientId($config['client_id']);
         $this->client->setClientSecret($config['client_secret']);
         $this->client->setRedirectUri($config['redirect_uri']);
+        $this->client->setAccessType($config['access_type']);
+        $this->client->setPrompt($config['prompt']);
         $this->client->setScopes($config['scopes']);
     }
 
     public function googleLogin()
     {
         $state = bin2hex(random_bytes(16));
-        $_SESSION['oauth2state'] = $state;
+        $_SESSION[OAUTH2STATE] = $state;
         $this->client->setState($state);
 
         $authUrl = $this->client->createAuthUrl();
@@ -36,9 +38,9 @@ class AuthController
     {
         if (
             isset($_GET['state']) && 
-            $_GET['state'] !== $_SESSION['oauth2state']
-        ) {
-            unset($_SESSION['oauth2state']);
+            $_GET['state'] !== $_SESSION[OAUTH2STATE]
+        ) {            
+            unset($_SESSION[OAUTH2STATE]);
             exit('Invalid state');
         }
 
@@ -48,7 +50,7 @@ class AuthController
                 exit('Error fetching access token: ' . htmlspecialchars($token['error']));
             }
 
-            $_SESSION['google_access_token'] = $token['access_token'];
+            $_SESSION[GOOGLE_ACCESS_TOKEN] = $token['access_token'];
 
             $oauth2 = new GoogleOauth2($this->client);
             $this->client->setAccessToken($token);
@@ -69,7 +71,7 @@ class AuthController
                 ]);
             }
 
-            $_SESSION['user'] = [
+            $_SESSION[SESSION_USER] = [
                 'id'    => $localUserId,
                 'email' => $googleUser->email,
                 'name'  => $googleUser->name
@@ -84,7 +86,7 @@ class AuthController
 
     public function logout()
     {
-        unset($_SESSION['user'], $_SESSION['google_access_token']);
+        unset($_SESSION[SESSION_USER], $_SESSION[GOOGLE_ACCESS_TOKEN]);
         header('Location: /');
         exit;
     }
