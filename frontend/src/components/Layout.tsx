@@ -1,6 +1,7 @@
 // src/components/Layout.tsx
-import React from 'react';
-import { Layout as AntLayout, Menu, Button } from 'antd';
+import React, { useState } from 'react';
+import { Layout as AntLayout, Menu, Button, Drawer } from 'antd';
+import { MenuOutlined } from '@ant-design/icons';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -16,6 +17,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, setUser } = useAuth();
   const selectedKeys = [location.pathname];
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const handleSignOut = async () => {
     try {
       await axios.get('/logout');
@@ -26,41 +29,52 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   };
 
+  const menuItems = [
+    {
+      key: '/invoices',
+      label: (
+        <Link to='/invoices'>{t('layout.allInvoices', 'All Invoices')}</Link>
+      ),
+    },
+    {
+      key: '/invoices/create',
+      label: (
+        <Link to='/invoices/create'>
+          {t('layout.createInvoice', 'Create Invoice')}
+        </Link>
+      ),
+    },
+  ];
+
   return (
     <AntLayout className='min-h-screen'>
-      <Header className='flex items-center justify-between'>
-        <div className='flex items-center'>
-          <div className='text-white font-bold text-xl mr-8'>
-            <Link to='/invoices'>{t('layout.title', 'Modern Invoicing')}</Link>
-          </div>
-          <Menu
-            theme='dark'
-            mode='horizontal'
-            selectedKeys={selectedKeys}
-            items={[
-              {
-                key: '/invoices',
-                label: (
-                  <Link to='/invoices'>
-                    {t('layout.allInvoices', 'All Invoices')}
-                  </Link>
-                ),
-              },
-              {
-                key: '/invoices/create',
-                label: (
-                  <Link to='/invoices/create'>
-                    {t('layout.createInvoice', 'Create Invoice')}
-                  </Link>
-                ),
-              },
-            ]}
-            className='flex-1'
-          />
+      <Header className='bg-gray-900 text-white flex items-center justify-between px-6 md:px-12'>
+        {/* Mobile Menu Button */}
+        <button
+          className='block md:hidden text-white text-xl'
+          onClick={() => setMobileMenuOpen(true)}
+        >
+          <MenuOutlined />
+        </button>
+
+        {/* Logo */}
+        <div className='text-white font-bold text-xl'>
+          <Link to='/'>{t('layout.title', 'Modern Invoicing')}</Link>
         </div>
+
+        {/* Desktop Menu */}
+        <Menu
+          theme='dark'
+          mode='horizontal'
+          selectedKeys={selectedKeys}
+          items={menuItems}
+          className='hidden md:flex'
+        />
+
+        {/* User Actions */}
         <div className='flex items-center space-x-4'>
           {user ? (
-            <Button onClick={handleSignOut}>
+            <Button type='text' onClick={handleSignOut}>
               {t('layout.signOut', 'Sign Out')}
             </Button>
           ) : (
@@ -71,6 +85,22 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <LanguageSwitcher />
         </div>
       </Header>
+
+      {/* Mobile Drawer */}
+      <Drawer
+        title={t('layout.menu', 'Menu')}
+        placement='left'
+        onClose={() => setMobileMenuOpen(false)}
+        visible={mobileMenuOpen}
+      >
+        <Menu
+          mode='vertical'
+          selectedKeys={selectedKeys}
+          items={menuItems}
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      </Drawer>
+
       <Content className='p-6'>{children}</Content>
     </AntLayout>
   );
