@@ -30,6 +30,7 @@ jobs:
             echo "Exporting environment variables..."
             export GOOGLE_REDIRECT_URI="${GOOGLE_REDIRECT_URI}"
             echo "GOOGLE_REDIRECT_URI is: $GOOGLE_REDIRECT_URI"
+            echo ${{ secrets.GOOGLE_REDIRECT_URI }}
             echo secrets.SSH_HOST
             echo $secrets.SSH_HOST
             echo ${{ secrets.GOOGLE_REDIRECT_URI }}
