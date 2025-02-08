@@ -1,37 +1,43 @@
 <?php
 // app/Controllers/AuthAPIController.php
+
 namespace App\Controllers;
 
 use App\Models\User;
+use Firebase\JWT\JWT;
 
 class AuthAPIController
 {
     public function me()
     {
-        if (isset($_SESSION[SESSION_USER])) {
-            echo json_encode(['user' => $_SESSION[SESSION_USER]]);
-        } else {
+        $userId = $_SESSION['user_id'] ?? null;
+        if (!$userId) {
             http_response_code(401);
             echo json_encode(['message' => 'Not authenticated']);
+            return;
         }
+
+        $user = User::findById($userId);
+        echo json_encode(['user' => $user]);
     }
-    
+
     public function emailSignIn()
     {
         $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
+        $password = trim($_POST['password'] ?? '');
+        if (empty($email) || empty($password)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Email and password are required']);
+            return;
+        }
 
         $user = User::findByEmail($email);
         if ($user && password_verify($password, $user['password'])) {
-            $_SESSION[SESSION_USER] = [
-                'id'    => $user['id'],
-                'email' => $user['email'],
-                'name'  => $user['name']
-            ];
-            echo json_encode(['success' => true, 'user' => $_SESSION[SESSION_USER]]);
+            $token = $this->generateJWT($user['id']);
+            echo json_encode(['success' => true, 'token' => $token, 'user' => $user]);
         } else {
             http_response_code(401);
-            echo json_encode(['success' => false, 'message' => 'Invalid credentials']);
+            echo json_encode(['error' => 'Invalid credentials']);
         }
     }
 
@@ -41,23 +47,32 @@ class AuthAPIController
         $password = $_POST['password'] ?? '';
         $name = $_POST['name'] ?? '';
 
-        $existingUser = User::findByEmail($email);
-        if ($existingUser) {
-            http_response_code(409);
-            echo json_encode(['success' => false, 'message' => 'User already exists']);
+        if (empty($email) || empty($password) || empty($name)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'All fields are required']);
             return;
         }
+
+        if (User::findByEmail($email)) {
+            http_response_code(409);
+            echo json_encode(['error' => 'User already exists']);
+            return;
+        }
+
         $hash = password_hash($password, PASSWORD_DEFAULT);
-        $userId = User::create([
-            'email'    => $email,
-            'name'     => $name,
-            'password' => $hash
-        ]);
-        $_SESSION[SESSION_USER] = [
-            'id'    => $userId,
-            'email' => $email,
-            'name'  => $name
+        $userId = User::create(['email' => $email, 'name' => $name, 'password' => $hash]);
+
+        $token = $this->generateJWT($userId);
+        echo json_encode(['success' => true, 'token' => $token]);
+    }
+
+    private function generateJWT($userId)
+    {
+        $payload = [
+            "user_id" => $userId,
+            "iat" => time(),
+            "exp" => time() + 3600 // 1-hour expiration
         ];
-        echo json_encode(['success' => true, 'user' => $_SESSION[SESSION_USER]]);
+        return JWT::encode($payload, $_ENV['JWT_SECRET'], 'HS256');
     }
 }
