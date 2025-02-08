@@ -11,12 +11,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: List repository root
-        run: ls -la
-
-      - name: List frontend directory
-        run: ls -la Frontend
-        
       - name: Install frontend dependencies and build
         working-directory: frontend
         run: |
