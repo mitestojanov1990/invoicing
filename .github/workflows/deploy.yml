@@ -59,6 +59,6 @@ jobs:
             rsync -av --delete frontend/dist/ public/
 
             echo "Reloading Apache..."
-            sudo systemctl reload apache2
+            echo "${{ secrets.SUDO_PASS }}" | sudo -S systemctl reload apache2
 
             echo "Deployment finished successfully!"
