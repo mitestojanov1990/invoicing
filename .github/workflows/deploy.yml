@@ -19,6 +19,11 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
+        
+      - name: Debug Environment
+        run: |
+          echo "GOOGLE_REDIRECT_URI is: $GOOGLE_REDIRECT_URI"
+          env | grep GOOGLE
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.6
