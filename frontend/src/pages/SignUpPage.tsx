@@ -2,7 +2,6 @@
 import React from 'react';
 import { Form, Input, Button, message } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -16,7 +15,7 @@ interface SignUpValues {
 const SignUpPage: React.FC = () => {
   const [form] = Form.useForm<SignUpValues>();
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { setUser, signUp } = useAuth();
   const { t } = useTranslation();
 
   const onFinish = async (values: SignUpValues) => {
@@ -25,22 +24,13 @@ const SignUpPage: React.FC = () => {
       return;
     }
     try {
-      const response = await axios.post('/api/auth/signup', {
-        name: values.name,
-        email: values.email,
-        password: values.password,
-      });
-      setUser(response.data.user);
+      const user = await signUp(values.name, values.email, values.password);
+      setUser(user);
       message.success(t('messages.signUpSuccess', 'Signed up successfully'));
       navigate('/invoices');
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        message.error(
-          `${t('messages.signUpFailed', 'Sign up failed')}: ${error.message}`
-        );
-      } else {
-        message.error(t('messages.signUpFailed', 'Sign up failed'));
-      }
+    } catch (error) {
+      console.log(error);
+      message.error(t('messages.signUpFailed', 'Sign up failed'));
     }
   };
 
@@ -51,52 +41,28 @@ const SignUpPage: React.FC = () => {
         <Form.Item
           name='name'
           label={t('form.name', 'Name')}
-          rules={[
-            {
-              required: true,
-              message: t('form.nameRequired', 'Name is required'),
-            },
-          ]}
+          rules={[{ required: true }]}
         >
           <Input />
         </Form.Item>
         <Form.Item
           name='email'
           label={t('form.email', 'Email')}
-          rules={[
-            {
-              required: true,
-              message: t('form.emailRequired', 'Email is required'),
-            },
-            { type: 'email', message: t('form.emailInvalid', 'Invalid email') },
-          ]}
+          rules={[{ required: true, type: 'email' }]}
         >
           <Input />
         </Form.Item>
         <Form.Item
           name='password'
           label={t('form.password', 'Password')}
-          rules={[
-            {
-              required: true,
-              message: t('form.passwordRequired', 'Password is required'),
-            },
-          ]}
+          rules={[{ required: true }]}
         >
           <Input.Password />
         </Form.Item>
         <Form.Item
           name='confirmPassword'
           label={t('form.confirmPassword', 'Confirm Password')}
-          rules={[
-            {
-              required: true,
-              message: t(
-                'form.confirmPasswordRequired',
-                'Please confirm your password'
-              ),
-            },
-          ]}
+          rules={[{ required: true }]}
         >
           <Input.Password />
         </Form.Item>

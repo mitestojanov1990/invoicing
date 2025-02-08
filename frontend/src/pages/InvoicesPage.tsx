@@ -3,33 +3,26 @@ import React, { useEffect, useState } from 'react';
 import { Table, Button, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { Link } from 'react-router-dom';
-import axios, { AxiosError } from 'axios';
-import { Invoice } from '../interfaces';
 import { useTranslation } from 'react-i18next';
+import { useInvoice } from '../contexts/InvoiceContext';
+import { Invoice } from '../interfaces'; // Ensure this is consistent with your context types
 
 const InvoicesPage: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const { t } = useTranslation();
+  const { getInvoices, deleteInvoice } = useInvoice();
 
   const fetchInvoices = async (): Promise<void> => {
     setLoading(true);
     try {
-      const response = await axios.get<Invoice[]>('/api/invoices');
-      setInvoices(response.data);
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const axiosError: AxiosError = error;
-        message.error(
-          `${t('messages.fetchInvoicesFailed', 'Failed to fetch invoices')}: ${
-            axiosError.message
-          }`
-        );
-      } else {
-        message.error(
-          t('messages.fetchInvoicesFailed', 'Failed to fetch invoices')
-        );
-      }
+      const data = await getInvoices();
+      setInvoices(data);
+    } catch (error) {
+      console.log(error);
+      message.error(
+        t('messages.fetchInvoicesFailed', 'Failed to fetch invoices')
+      );
     } finally {
       setLoading(false);
     }
@@ -41,24 +34,16 @@ const InvoicesPage: React.FC = () => {
 
   const handleDelete = async (id: number): Promise<void> => {
     try {
-      await axios.delete(`/api/invoices/${id}`);
+      await deleteInvoice(id);
       message.success(
         t('messages.invoiceDeletedSuccess', 'Invoice deleted successfully.')
       );
       fetchInvoices();
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const axiosError: AxiosError = error;
-        message.error(
-          `${t('messages.invoiceDeleteFailed', 'Failed to delete invoice')}: ${
-            axiosError.message
-          }`
-        );
-      } else {
-        message.error(
-          t('messages.invoiceDeleteFailed', 'Failed to delete invoice')
-        );
-      }
+    } catch (error) {
+      console.log(error);
+      message.error(
+        t('messages.invoiceDeleteFailed', 'Failed to delete invoice')
+      );
     }
   };
 

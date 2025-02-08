@@ -14,7 +14,7 @@ jobs:
       - name: Install frontend dependencies and build
         working-directory: frontend
         run: |
-          ls -la  # Verify package-lock.json exists here
+          ls -la  # Verify package-lock.json exists in this directory
           npm ci --include=dev
           npm run build
           
@@ -70,7 +70,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: invoicing
           key: ${{ secrets.SSH_KEY }}
-          # Copy the contents of frontend/dist (the built files) to the correct target folder
+          # Copy the contents of frontend/dist (the built files) to the DocumentRoot
           source: "frontend/dist/*"
           target: "/var/www/html/invoicing/frontend/dist/"
 
