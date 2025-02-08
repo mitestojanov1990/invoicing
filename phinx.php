@@ -2,11 +2,11 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-$dbHost = $_ENV['DB_HOST'] ?? 'localhost';
-$dbName = $_ENV['DB_NAME'] ?? 'angels_db';
-$dbUser = $_ENV['DB_USER'] ?? 'invoice_user';
-$dbPass = $_ENV['DB_PASS'] ?? 'invpass';
-$dbPort = $_ENV['DB_PORT'] ?? 8889;
+$dbHost = $_ENV['DB_HOST'];
+$dbName = $_ENV['DB_NAME'];
+$dbUser = $_ENV['DB_USER'];
+$dbPass = $_ENV['DB_PASS'];
+$dbPort = $_ENV['DB_PORT'];
 
 return [
     'paths' => [
