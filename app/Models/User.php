@@ -27,13 +27,15 @@ class User
     public static function create(array $data): int
     {
         $pdo = getPDO();
-        $sql = "INSERT INTO users (email, name, google_id, created_at) 
-                VALUES (:email, :name, :google_id, NOW())";
+        // Build the base SQL and parameters
+        $sql = "INSERT INTO users (email, name, google_id, password, created_at) 
+                VALUES (:email, :name, :google_id, :password, NOW())";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ':email'     => $data['email'],
             ':name'      => $data['name'] ?? null,
-            ':google_id' => $data['google_id'] ?? null
+            ':google_id' => $data['google_id'] ?? null,
+            ':password'  => $data['password'] ?? null
         ]);
         return (int)$pdo->lastInsertId();
     }
