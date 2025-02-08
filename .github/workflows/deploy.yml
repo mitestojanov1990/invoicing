@@ -70,9 +70,9 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: invoicing
           key: ${{ secrets.SSH_KEY }}
-          # Copy the contents of frontend/dist (the built files) to the target folder "/var/www/html/invoicing/app/"
+          # Copy the contents of frontend/dist (the built files) to the correct target folder
           source: "frontend/dist/*"
-          target: "/var/www/html/invoicing/app/"
+          target: "/var/www/html/invoicing/frontend/dist/"
 
       - name: Reload Apache via SSH
         uses: appleboy/ssh-action@v0.1.6
