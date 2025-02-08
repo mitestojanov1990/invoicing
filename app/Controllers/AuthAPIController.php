@@ -6,6 +6,16 @@ use App\Models\User;
 
 class AuthAPIController
 {
+    public function me()
+    {
+        if (isset($_SESSION[SESSION_USER])) {
+            echo json_encode(['user' => $_SESSION[SESSION_USER]]);
+        } else {
+            http_response_code(401);
+            echo json_encode(['message' => 'Not authenticated']);
+        }
+    }
+    
     public function emailSignIn()
     {
         $email = $_POST['email'] ?? '';

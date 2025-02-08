@@ -35,7 +35,13 @@ $authController = new AuthController();
 
 
 // Basic router
-if ($uri === '/api/auth/signin' && $method === 'POST') {
+
+if ($uri === '/api/auth/me' && $method === 'POST') {
+    $authAPIController = new AuthAPIController();
+    $authAPIController->me();
+    exit;
+}
+elseif ($uri === '/api/auth/signin' && $method === 'POST') {
     $authAPIController = new AuthAPIController();
     $authAPIController->emailSignIn();
     exit;

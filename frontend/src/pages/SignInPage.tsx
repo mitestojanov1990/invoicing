@@ -2,9 +2,10 @@
 import React from 'react';
 import { Form, Input, Button, message } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 interface SignInValues {
   email: string;
@@ -69,13 +70,9 @@ const SignInPage: React.FC = () => {
           </Button>
         </Form.Item>
       </Form>
-      <Button
-        type='default'
-        onClick={() => (window.location.href = '/auth/google')}
-        className='mb-4'
-      >
-        {t('form.signInWithGoogle', 'Sign In with Google')}
-      </Button>
+      <div className='mb-4'>
+        <GoogleSignInButton />
+      </div>
       <div>
         {t('form.noAccount', "Don't have an account?")}{' '}
         <Link to='/signup'>{t('form.signUp', 'Sign Up')}</Link>
