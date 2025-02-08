@@ -1,124 +1,63 @@
-<?php
-// app/Views/layout.php
-// Ensure session is started and constants loaded
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
-}
-require_once __DIR__ . '/../../config/constants.php';
-?>
 <!DOCTYPE html>
 <html lang="mk">
 <head>
   <meta charset="UTF-8">
+  <!-- Ensures proper rendering on mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <title>Invoicing App</title>
-  <!-- AdminLTE CSS -->
-  <link rel="stylesheet" href="/assets/adminlte/css/adminlte.min.css">
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="/assets/adminlte/plugins/fontawesome-free/css/all.min.css">
-  <!-- Optional: your custom CSS -->
+
+  <!-- Bootstrap 5 CSS (CDN) -->
+  <link
+    rel="stylesheet"
+    href="/assets/css/bootstrap.min.css"
+  >
+
+  <!-- Optional: your custom CSS after Bootstrap to override styles -->
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
-<body class="hold-transition sidebar-mini">
-<div class="wrapper">
-  <!-- Navbar -->
-  <nav class="main-header navbar navbar-expand navbar-dark navbar-primary">
-    <!-- Left navbar links -->
-    <ul class="navbar-nav">
-      <li class="nav-item">
-        <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-      </li>
-      <li class="nav-item d-none d-sm-inline-block">
-        <a href="/invoices" class="nav-link">Dashboard</a>
-      </li>
-    </ul>
-    <!-- Right navbar links -->
-    <ul class="navbar-nav ml-auto">
-      <?php if (!isset($_SESSION[SESSION_USER])): ?>
-          <li class="nav-item">
-            <a class="nav-link" href="/auth/google">Login with Google</a>
-          </li>
-      <?php else: ?>
-          <li class="nav-item">
-            <a class="nav-link" href="/logout">Hello, <?= htmlspecialchars($_SESSION[SESSION_USER]['name'] ?? '') ?> | Logout</a>
-          </li>
-      <?php endif; ?>
-    </ul>
-  </nav>
-  <!-- /.navbar -->
+<body>
 
-  <!-- Main Sidebar Container -->
-  <aside class="main-sidebar sidebar-dark-primary elevation-4">
-    <!-- Brand Logo -->
-    <a href="/invoices" class="brand-link">
-      <img src="/assets/adminlte/img/AdminLTELogo.png" alt="Logo" class="brand-image img-circle elevation-3"
-           style="opacity: .8">
-      <span class="brand-text font-weight-light">Invoicing</span>
-    </a>
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <!-- Sidebar Menu -->
-      <nav class="mt-2">
-        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
-          <li class="nav-item">
-            <a href="/invoices" class="nav-link">
-              <i class="nav-icon fas fa-file-invoice"></i>
-              <p>All Invoices</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="/invoices/create" class="nav-link">
-              <i class="nav-icon fas fa-plus-circle"></i>
-              <p>Create Invoice</p>
-            </a>
-          </li>
-          <!-- Add more menu items as needed -->
-        </ul>
-      </nav>
-      <!-- /.sidebar-menu -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/invoices">My Invoicing</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+            aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" href="/invoices">All Invoices</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/invoices/create">Create Invoice</a>
+        </li>
+        <li class="nav-item">
+          <?php if (empty($_SESSION[SESSION_USER])): ?>
+              <a class="nav-link" href="/auth/google">Login with Google</a>
+          <?php else: ?>
+              
+              <a class="nav-link" href="/logout">Hello, <?= htmlspecialchars($_SESSION[SESSION_USER]['name'] ?? '') ?> | Logout</a>
+          <?php endif; ?>
+      </ul>
     </div>
-    <!-- /.sidebar -->
-  </aside>
-
-  <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <div class="container-fluid">
-        <!-- Optionally, add breadcrumbs or page title -->
-      </div><!-- /.container-fluid -->
-    </section>
-    
-    <!-- Main content -->
-    <section class="content">
-      <div class="container-fluid">
-        <?php
-          // Display the content of the specific view
-          echo $content ?? '';
-        ?>
-      </div><!-- /.container-fluid -->
-    </section>
-    <!-- /.content -->
   </div>
-  <!-- /.content-wrapper -->
+</nav>
 
-  <!-- Footer -->
-  <footer class="main-footer">
-    <div class="float-right d-none d-sm-inline">
-      Invoicing App
-    </div>
-    <strong>&copy; <?= date('Y') ?> Your Company</strong> All rights reserved.
-  </footer>
+<div class="container my-4">
+  <!-- Here we display the main content from each view -->
+  <?php echo $content ?? ''; ?>
 </div>
-<!-- ./wrapper -->
 
-<!-- jQuery -->
-<script src="/assets/adminlte/plugins/jquery/jquery.min.js"></script>
-<!-- Bootstrap 5 -->
-<script src="/assets/adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<!-- AdminLTE App -->
-<script src="/assets/adminlte/js/adminlte.min.js"></script>
-<!-- Optional: your custom JS -->
-<script src="/assets/js/script.js"></script>
+<!-- Bootstrap 5 JS (CDN) -->
+<script src="/assets/js/bootstrap.bundle.min.js">
+</script>
+
+<!-- jQuery if you need it -->
+<script src="/assets/js/jquery-3.6.0.min.js"></script>
+
+
 </body>
 </html>
