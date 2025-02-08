@@ -3,8 +3,32 @@
 
 session_start();
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+// Global error handler: Convert errors into exceptions.
+set_error_handler(function ($errno, $errstr, $errfile, $errline) {
+    if (!(error_reporting() & $errno)) {
+        return;
+    }
+    throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+});
+
+// Global exception handler: Sends error response with proper HTTP status.
+set_exception_handler(function ($exception) {
+    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    // If API request, return JSON error; otherwise, plain text.
+    if (strpos($uri, '/api/') === 0) {
+        http_response_code(500);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'error' => $exception->getMessage(),
+            'code'  => $exception->getCode()
+        ]);
+    } else {
+        http_response_code(500);
+        header('Content-Type: text/plain');
+        echo "Internal Server Error: " . $exception->getMessage();
+    }
+    exit;
+});
 
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config/constants.php';
@@ -12,67 +36,83 @@ require_once __DIR__ . '/../config/constants.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->load();
 
+// Import controllers
 use App\Controllers\InvoiceController;
 use App\Controllers\AuthController;
 use App\Controllers\AuthAPIController;
+use App\Controllers\InvoiceAPIController;
 
+// Parse request URI and method
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
+
+// API Routes (prefix with /api/)
+if (strpos($uri, '/api/') === 0) {
+    // Instantiate API controllers
+    $authAPIController = new AuthAPIController();
+    $invoiceApiController = new InvoiceAPIController();
+
+    // Auth API endpoints
+    if ($uri === '/api/auth/me' && $method === 'POST') {
+        $authAPIController->me();
+        exit;
+    } elseif ($uri === '/api/auth/signin' && $method === 'POST') {
+        $authAPIController->emailSignIn();
+        exit;
+    } elseif ($uri === '/api/auth/signup' && $method === 'POST') {
+        $authAPIController->emailSignUp();
+        exit;
+    }
+    // Invoice API endpoints
+    elseif ($uri === '/api/invoices' && $method === 'GET') {
+        $invoiceApiController->index();
+        exit;
+    } elseif ($uri === '/api/invoices' && $method === 'POST') {
+        $invoiceApiController->store();
+        exit;
+    } elseif (preg_match('#^/api/invoices/(\d+)$#', $uri, $matches)) {
+        $invoiceId = (int)$matches[1];
+        if ($method === 'GET') {
+            $invoiceApiController->show($invoiceId);
+            exit;
+        } elseif ($method === 'PUT' || $method === 'PATCH') {
+            $invoiceApiController->update($invoiceId);
+            exit;
+        } elseif ($method === 'DELETE') {
+            $invoiceApiController->destroy($invoiceId);
+            exit;
+        }
+    } elseif (preg_match('#^/api/invoices/(\d+)/pdf$#', $uri, $matches) && $method === 'GET') {
+        $invoiceApiController->generatePDF((int)$matches[1]);
+        exit;
+    } else {
+        http_response_code(404);
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'API endpoint not found']);
+        exit;
+    }
+}
+
+// Web Routes
 
 $invoiceController = new InvoiceController();
 $authController = new AuthController();
 
-/**
- * Basic routes:
- * GET  /invoices                => $invoiceController->index()
- * GET  /invoices/create         => $invoiceController->create()
- * POST /invoices/store          => $invoiceController->store()
- * GET  /invoices/{id}/edit      => $invoiceController->edit($id)
- * POST /invoices/{id}/update    => $invoiceController->update($id)
- * GET  /invoices/{id}/delete    => $invoiceController->destroy($id)
- * GET  /invoices/{id}/pdf       => $invoiceController->generatePDF($id)
- */
-
-
-// Basic router
-
-if ($uri === '/api/auth/me' && $method === 'POST') {
-    $authAPIController = new AuthAPIController();
-    $authAPIController->me();
-    exit;
-}
-elseif ($uri === '/api/auth/signin' && $method === 'POST') {
-    $authAPIController = new AuthAPIController();
-    $authAPIController->emailSignIn();
-    exit;
-} elseif ($uri === '/api/auth/signup' && $method === 'POST') {
-    $authAPIController = new AuthAPIController();
-    $authAPIController->emailSignUp();
-    exit;
-}
-
-
 if ($uri === '/auth/google') {
-    // GET /auth/google => redirect to google
     $authController->googleLogin();
 } elseif ($uri === '/auth/google/callback') {
-    // GET /auth/google/callback => handle google's redirect
     $authController->googleCallback();
 } elseif ($uri === '/logout') {
     $authController->logout();
 } else {
+    // For non-API routes, if not logged in, redirect to Google auth.
     if (!isset($_SESSION[SESSION_USER])) {
-        // If not logged in, redirect to Google authentication
         header('Location: /auth/google');
         exit;
     }
 }
 
 if ($uri === '/invoices') {
-    if (!isset($_SESSION[SESSION_USER])) {
-        header('Location: /auth/google');
-        exit;
-    }
     if ($method === 'GET') {
         $invoiceController->index();
     }
@@ -108,5 +148,6 @@ if ($uri === '/invoices') {
     }
 } else {
     http_response_code(404);
+    header('Content-Type: text/plain');
     echo "Page not found.";
 }

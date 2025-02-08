@@ -14,9 +14,10 @@ import type { ColumnsType } from 'antd/es/table';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios, { AxiosError } from 'axios';
 import moment from 'moment';
+import { v4 as uuidv4 } from 'uuid';
 import {
   Invoice,
-  InvoiceLine,
+  EditableInvoiceLine,
   InvoiceFormValues,
   InvoicePayload,
 } from '../interfaces';
@@ -24,7 +25,7 @@ import { useTranslation } from 'react-i18next';
 
 const EditInvoicePage: React.FC = () => {
   const [form] = Form.useForm<InvoiceFormValues>();
-  const [lines, setLines] = useState<InvoiceLine[]>([]);
+  const [lines, setLines] = useState<EditableInvoiceLine[]>([]);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -40,6 +41,7 @@ const EditInvoicePage: React.FC = () => {
         city: invoice.city,
         invoice_type: invoice.invoice_type,
       });
+      // Existing invoice lines from backend should have an id property.
       setLines(invoice.lines);
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
@@ -60,15 +62,25 @@ const EditInvoicePage: React.FC = () => {
   }, [id]);
 
   const addLine = (): void => {
-    setLines([...lines, { description: '', quantity: 0, price: 0, total: 0 }]);
+    setLines([
+      ...lines,
+      {
+        tempId: uuidv4(),
+        description: '',
+        quantity: 0,
+        price: 0,
+        total: 0,
+        id: 0,
+      },
+    ]);
   };
 
-  const updateLine = <K extends keyof InvoiceLine>(
+  const updateLine = <K extends keyof EditableInvoiceLine>(
     index: number,
     key: K,
-    value: InvoiceLine[K]
+    value: EditableInvoiceLine[K]
   ): void => {
-    const newLines: InvoiceLine[] = [...lines];
+    const newLines = [...lines];
     newLines[index] = { ...newLines[index], [key]: value };
 
     if (key === 'quantity' || key === 'price') {
@@ -82,12 +94,12 @@ const EditInvoicePage: React.FC = () => {
     setLines(lines.filter((_, i) => i !== index));
   };
 
-  const columns: ColumnsType<InvoiceLine> = [
+  const columns: ColumnsType<EditableInvoiceLine> = [
     {
       title: t('form.invoiceLinesDescription', 'Description'),
       dataIndex: 'description',
       key: 'description',
-      render: (_: string, record: InvoiceLine, index: number) => (
+      render: (_: string, record, index: number) => (
         <Input
           value={record.description}
           onChange={(e) => updateLine(index, 'description', e.target.value)}
@@ -98,7 +110,7 @@ const EditInvoicePage: React.FC = () => {
       title: t('form.invoiceLinesQuantity', 'Quantity'),
       dataIndex: 'quantity',
       key: 'quantity',
-      render: (_: number, record: InvoiceLine, index: number) => (
+      render: (_: number, record, index: number) => (
         <InputNumber
           value={record.quantity}
           onChange={(value) => {
@@ -113,7 +125,7 @@ const EditInvoicePage: React.FC = () => {
       title: t('form.invoiceLinesPrice', 'Price'),
       dataIndex: 'price',
       key: 'price',
-      render: (_: number, record: InvoiceLine, index: number) => (
+      render: (_: number, record, index: number) => (
         <InputNumber
           value={record.price}
           onChange={(value) => {
@@ -133,7 +145,7 @@ const EditInvoicePage: React.FC = () => {
     {
       title: t('form.actions', 'Actions'),
       key: 'actions',
-      render: (_: unknown, __: InvoiceLine, index: number) => (
+      render: (_: unknown, __: EditableInvoiceLine, index: number) => (
         <Button danger onClick={() => removeLine(index)}>
           {t('form.remove', 'Remove')}
         </Button>
@@ -228,7 +240,9 @@ const EditInvoicePage: React.FC = () => {
             dataSource={lines}
             columns={columns}
             pagination={false}
-            rowKey={(_, index) => (index ? index.toString() : 'ERROR')}
+            rowKey={(record) =>
+              record.id ? record.id.toString() : (record.tempId as string)
+            }
             footer={() => (
               <Button type='dashed' onClick={addLine} block>
                 {t('form.addLine', 'Add Line')}
