@@ -32,13 +32,15 @@ jobs:
           username: invoicing                 # The SSH user on your Droplet
           key: ${{ secrets.SSH_KEY }}         # The private key (without a passphrase) stored as a secret
           script: |
-            echo "Exporting environment variables..."
-            export GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}
-            echo "GOOGLE_REDIRECT_URI is: $GOOGLE_REDIRECT_URI"
-            echo ${{ secrets.GOOGLE_REDIRECT_URI }}
-            echo secrets.SSH_HOST
-            echo $secrets.SSH_HOST
-            echo ${{ secrets.GOOGLE_REDIRECT_URI }}
+            cat > /var/www/html/invoicing/.env <<EOF
+              DB_HOST=${DB_HOST}
+              DB_NAME=${DB_NAME}
+              DB_USER=${DB_USER}
+              DB_PASS=${DB_PASS}
+              GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+              GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+              GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
+              EOF
             # Navigate to your project directory; adjust this path if needed
             cd /var/www/html/invoicing
 
