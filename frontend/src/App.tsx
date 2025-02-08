@@ -1,25 +1,48 @@
+// src/App.tsx
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './components/Layout';
+import InvoicesPage from './pages/InvoicesPage';
+import CreateInvoicePage from './pages/CreateInvoicePage';
+import EditInvoicePage from './pages/EditInvoicePage';
+import SignInPage from './pages/SignInPage';
+import SignUpPage from './pages/SignUpPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Layout>
+      <Routes>
+        <Route path='/' element={<Navigate to='/invoices' />} />
+        <Route path='/signin' element={<SignInPage />} />
+        <Route path='/signup' element={<SignUpPage />} />
+        <Route
+          path='/invoices'
+          element={
+            <ProtectedRoute>
+              <InvoicesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/invoices/create'
+          element={
+            <ProtectedRoute>
+              <CreateInvoicePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/invoices/:id/edit'
+          element={
+            <ProtectedRoute>
+              <EditInvoicePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path='*' element={<div>404 Not Found</div>} />
+      </Routes>
+    </Layout>
   );
 }
 

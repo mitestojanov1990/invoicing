@@ -14,6 +14,7 @@ $dotenv->load();
 
 use App\Controllers\InvoiceController;
 use App\Controllers\AuthController;
+use App\Controllers\AuthAPIController;
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
@@ -34,6 +35,16 @@ $authController = new AuthController();
 
 
 // Basic router
+if ($uri === '/api/auth/signin' && $method === 'POST') {
+    $authAPIController = new AuthAPIController();
+    $authAPIController->emailSignIn();
+    exit;
+} elseif ($uri === '/api/auth/signup' && $method === 'POST') {
+    $authAPIController = new AuthAPIController();
+    $authAPIController->emailSignUp();
+    exit;
+}
+
 
 if ($uri === '/auth/google') {
     // GET /auth/google => redirect to google
