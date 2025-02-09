@@ -14,9 +14,7 @@
 
 /* Fix AntD Menu Overflow Issues */
 .ant-menu-horizontal {
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  justify-content: center;
+  @apply flex justify-center items-center w-full;
   overflow-x: auto !important;
   white-space: nowrap !important;
 }
@@ -41,9 +39,21 @@
     align-items: center;
     gap: 10px;
   }
+
+  .ant-menu-horizontal {
+    @apply flex-wrap;
+  }
 }
 
 /* Prevent Form Items From Stacking */
 .ant-form-item {
   margin-bottom: 16px !important;
+}
+
+/* Ensure Sider is at the bottom */
+.ant-layout-sider {
+  position: fixed !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: auto !important;
 }

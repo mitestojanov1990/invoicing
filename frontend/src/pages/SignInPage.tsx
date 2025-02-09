@@ -1,64 +1,56 @@
-// src/pages/SignInPage.tsx
 import React from 'react';
-import { Form, Input, Button, message } from 'antd';
+import { Button, Label, TextInput } from 'flowbite-react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
-import GoogleSignInButton from '../components/GoogleSignInButton';
-
-interface SignInValues {
-  email: string;
-  password: string;
-}
 
 const SignInPage: React.FC = () => {
-  const [form] = Form.useForm<SignInValues>();
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { setUser } = useAuth();
   const { t } = useTranslation();
 
-  const onFinish = async (values: SignInValues) => {
+  const handleSignIn = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const form = event.target as HTMLFormElement;
+    const email = (form.elements.namedItem('email') as HTMLInputElement).value;
+    const password = (form.elements.namedItem('password') as HTMLInputElement)
+      .value;
+
     try {
-      await signIn(values.email, values.password);
-      message.success(t('messages.signInSuccess', 'Signed in successfully'));
+      const response = await axios.post('/api/auth/signin', {
+        email,
+        password,
+      });
+      setUser(response.data.user);
       navigate('/invoices');
     } catch (error) {
       console.error(error);
-      message.error(t('messages.signInFailed', 'Sign in failed'));
     }
   };
 
   return (
     <div className='max-w-md mx-auto p-6'>
       <h1 className='text-2xl font-bold mb-4'>{t('form.signIn', 'Sign In')}</h1>
-      <Form form={form} layout='vertical' onFinish={onFinish}>
-        <Form.Item
-          name='email'
-          label={t('form.email', 'Email')}
-          rules={[{ required: true, type: 'email' }]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          name='password'
-          label={t('form.password', 'Password')}
-          rules={[{ required: true }]}
-        >
-          <Input.Password />
-        </Form.Item>
-        <Form.Item>
-          <Button type='primary' htmlType='submit'>
-            {t('form.signIn', 'Sign In')}
-          </Button>
-        </Form.Item>
-      </Form>
-      <div className='mb-4'>
-        <GoogleSignInButton />
-      </div>
-      <div>
+      <form onSubmit={handleSignIn} className='space-y-4'>
+        <div>
+          <Label htmlFor='email'>{t('form.email', 'Email')}</Label>
+          <TextInput id='email' name='email' type='email' required />
+        </div>
+        <div>
+          <Label htmlFor='password'>{t('form.password', 'Password')}</Label>
+          <TextInput id='password' name='password' type='password' required />
+        </div>
+        <Button type='submit' color='blue'>
+          {t('form.signIn', 'Sign In')}
+        </Button>
+      </form>
+      <p className='mt-4'>
         {t('form.noAccount', "Don't have an account?")}{' '}
-        <Link to='/signup'>{t('form.signUp', 'Sign Up')}</Link>
-      </div>
+        <Link to='/signup' className='text-blue-600'>
+          {t('form.signUp', 'Sign Up')}
+        </Link>
+      </p>
     </div>
   );
 };

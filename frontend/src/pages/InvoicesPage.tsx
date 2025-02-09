@@ -1,106 +1,102 @@
 // src/pages/InvoicesPage.tsx
 import React, { useEffect, useState } from 'react';
-import { Table, Button, message } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useInvoice } from '../contexts/InvoiceContext';
-import { Invoice } from '../interfaces'; // Ensure this is consistent with your context types
+import { Invoice } from '../interfaces';
+import { Table, Button, Spinner } from 'flowbite-react';
+import { Link } from 'react-router-dom';
 
 const InvoicesPage: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const { t } = useTranslation();
+  const [loading, setLoading] = useState<boolean>(true);
   const { getInvoices, deleteInvoice } = useInvoice();
+  const { t } = useTranslation();
 
-  const fetchInvoices = async (): Promise<void> => {
-    setLoading(true);
-    try {
-      const data = await getInvoices();
-      setInvoices(data);
-    } catch (error) {
-      console.log(error);
-      message.error(
-        t('messages.fetchInvoicesFailed', 'Failed to fetch invoices')
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Fetch invoices on component mount
   useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        const data = await getInvoices();
+        setInvoices(data);
+      } catch (error) {
+        console.error('Failed to fetch invoices:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchInvoices();
-  }, []);
+  }, [getInvoices]);
 
   const handleDelete = async (id: number): Promise<void> => {
     try {
       await deleteInvoice(id);
-      message.success(
-        t('messages.invoiceDeletedSuccess', 'Invoice deleted successfully.')
-      );
-      fetchInvoices();
+      setInvoices(invoices.filter((invoice) => invoice.id !== id));
     } catch (error) {
-      console.log(error);
-      message.error(
-        t('messages.invoiceDeleteFailed', 'Failed to delete invoice')
-      );
+      console.error('Failed to delete invoice:', error);
     }
   };
 
-  const columns: ColumnsType<Invoice> = [
-    { title: t('table.id', 'ID'), dataIndex: 'id', key: 'id' },
-    {
-      title: t('table.invoiceNumber', 'Number'),
-      dataIndex: 'invoice_number',
-      key: 'invoice_number',
-    },
-    {
-      title: t('table.invoiceDate', 'Date'),
-      dataIndex: 'invoice_date',
-      key: 'invoice_date',
-    },
-    { title: t('table.toName', 'To'), dataIndex: 'to_name', key: 'to_name' },
-    { title: t('table.city', 'City'), dataIndex: 'city', key: 'city' },
-    {
-      title: t('table.invoiceType', 'Type'),
-      dataIndex: 'invoice_type',
-      key: 'invoice_type',
-      render: (type: number) => t(`invoiceType.${type}`, 'Unknown'),
-    },
-    {
-      title: t('table.actions', 'Actions'),
-      key: 'actions',
-      render: (_: unknown, record: Invoice) => (
-        <div className='space-x-2'>
-          <Link to={`/invoices/${record.id}/edit`}>
-            <Button type='primary'>{t('table.edit', 'Edit')}</Button>
-          </Link>
-          <Button danger onClick={() => handleDelete(record.id)}>
-            {t('table.delete', 'Delete')}
-          </Button>
-          <Button
-            onClick={() =>
-              window.open(`/api/invoices/${record.id}/pdf`, '_blank')
-            }
-          >
-            {t('table.pdf', 'PDF')}
-          </Button>
-        </div>
-      ),
-    },
-  ];
-
   return (
-    <div>
+    <div className='max-w-6xl mx-auto p-6'>
       <h1 className='text-2xl font-bold mb-4'>
         {t('form.allInvoices', 'All Invoices')}
       </h1>
-      <Table
-        dataSource={invoices}
-        columns={columns}
-        rowKey='id'
-        loading={loading}
-      />
+
+      {loading ? (
+        <div className='flex justify-center mt-8'>
+          <Spinner size='xl' />
+        </div>
+      ) : (
+        <Table>
+          <Table.Head>
+            <Table.HeadCell>{t('table.id', 'ID')}</Table.HeadCell>
+            <Table.HeadCell>
+              {t('table.invoiceNumber', 'Number')}
+            </Table.HeadCell>
+            <Table.HeadCell>{t('table.invoiceDate', 'Date')}</Table.HeadCell>
+            <Table.HeadCell>{t('table.toName', 'To')}</Table.HeadCell>
+            <Table.HeadCell>{t('table.city', 'City')}</Table.HeadCell>
+            <Table.HeadCell>{t('table.invoiceType', 'Type')}</Table.HeadCell>
+            <Table.HeadCell>{t('table.actions', 'Actions')}</Table.HeadCell>
+          </Table.Head>
+          <Table.Body>
+            {invoices.map((invoice) => (
+              <Table.Row key={invoice.id}>
+                <Table.Cell>{invoice.id}</Table.Cell>
+                <Table.Cell>{invoice.invoice_number}</Table.Cell>
+                <Table.Cell>{invoice.invoice_date}</Table.Cell>
+                <Table.Cell>{invoice.to_name}</Table.Cell>
+                <Table.Cell>{invoice.city}</Table.Cell>
+                <Table.Cell>
+                  {t(`invoiceType.${invoice.invoice_type}`, 'Unknown')}
+                </Table.Cell>
+                <Table.Cell>
+                  <div className='flex space-x-2'>
+                    <Link to={`/invoices/${invoice.id}/edit`}>
+                      <Button color='blue'>{t('table.edit', 'Edit')}</Button>
+                    </Link>
+                    <Button
+                      color='red'
+                      onClick={() => handleDelete(invoice.id)}
+                    >
+                      {t('table.delete', 'Delete')}
+                    </Button>
+                    <Button
+                      color='gray'
+                      onClick={() =>
+                        window.open(`/api/invoices/${invoice.id}/pdf`, '_blank')
+                      }
+                    >
+                      {t('table.pdf', 'PDF')}
+                    </Button>
+                  </div>
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
+      )}
     </div>
   );
 };

@@ -1,29 +1,20 @@
-// src/pages/CreateInvoicePage.tsx
 import React, { useState } from 'react';
-import {
-  Form,
-  Input,
-  DatePicker,
-  Select,
-  Button,
-  Table,
-  InputNumber,
-  message,
-} from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import moment from 'moment';
 import { useTranslation } from 'react-i18next';
 import { useInvoice } from '../contexts/InvoiceContext';
-import {
-  InvoiceFormValues,
-  InvoicePayload,
-  EditableInvoiceLine,
-} from '../interfaces';
+import { InvoicePayload, EditableInvoiceLine } from '../interfaces';
+import { Button, Label, TextInput, Select, Table } from 'flowbite-react';
 
 const CreateInvoicePage: React.FC = () => {
-  const [form] = Form.useForm<InvoiceFormValues>();
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [invoiceDate, setInvoiceDate] = useState(moment().format('YYYY-MM-DD'));
+  const [toName, setToName] = useState('');
+  const [city, setCity] = useState('');
+  const [invoiceType, setInvoiceType] = useState<number>(1);
   const [lines, setLines] = useState<EditableInvoiceLine[]>([]);
+
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { createInvoice } = useInvoice();
@@ -61,132 +52,146 @@ const CreateInvoicePage: React.FC = () => {
     setLines(lines.filter((_, i) => i !== index));
   };
 
-  const onFinish = async (values: InvoiceFormValues): Promise<void> => {
+  const onSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     const payload: InvoicePayload = {
-      ...values,
-      invoice_date: values.invoice_date.format('YYYY-MM-DD'),
+      invoice_number: invoiceNumber,
+      invoice_date: invoiceDate,
+      to_name: toName,
+      city,
+      invoice_type: invoiceType,
       lines,
     };
 
     try {
       await createInvoice(payload);
-      message.success(
-        t('messages.invoiceCreatedSuccess', 'Invoice created successfully.')
-      );
       navigate('/invoices');
     } catch (error) {
-      console.log(error);
-      message.error(
-        t('messages.invoiceCreateFailed', 'Failed to create invoice')
-      );
+      console.error(error);
     }
   };
 
   return (
-    <div>
+    <div className='max-w-3xl mx-auto p-6 bg-white rounded-lg shadow'>
       <h1 className='text-2xl font-bold mb-4'>
         {t('form.createInvoice', 'Create Invoice')}
       </h1>
-      <Form form={form} layout='vertical' onFinish={onFinish}>
-        <Form.Item
-          name='invoice_number'
-          label={t('form.invoiceNumber', 'Invoice Number')}
-          rules={[{ required: true }]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          name='invoice_date'
-          label={t('form.invoiceDate', 'Invoice Date')}
-          initialValue={moment()}
-          rules={[{ required: true }]}
-        >
-          <DatePicker />
-        </Form.Item>
-        <Form.Item name='to_name' label={t('form.toName', 'To Name')}>
-          <Input />
-        </Form.Item>
-        <Form.Item name='city' label={t('form.city', 'City')}>
-          <Input />
-        </Form.Item>
-        <Form.Item name='invoice_type' label={t('form.invoiceType', 'Type')}>
-          <Select>
-            <Select.Option value={1}>
-              {t('invoiceType.1', 'Invoice')}
-            </Select.Option>
-            <Select.Option value={2}>
-              {t('invoiceType.2', 'Proforma Invoice')}
-            </Select.Option>
-            <Select.Option value={3}>
-              {t('invoiceType.3', 'Offer')}
-            </Select.Option>
+      <form onSubmit={onSubmit} className='space-y-4'>
+        <div>
+          <Label htmlFor='invoiceNumber'>
+            {t('form.invoiceNumber', 'Invoice Number')}
+          </Label>
+          <TextInput
+            id='invoiceNumber'
+            value={invoiceNumber}
+            onChange={(e) => setInvoiceNumber(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor='invoiceDate'>
+            {t('form.invoiceDate', 'Invoice Date')}
+          </Label>
+          <TextInput
+            id='invoiceDate'
+            type='date'
+            value={invoiceDate}
+            onChange={(e) => setInvoiceDate(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor='toName'>{t('form.toName', 'To Name')}</Label>
+          <TextInput
+            id='toName'
+            value={toName}
+            onChange={(e) => setToName(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor='city'>{t('form.city', 'City')}</Label>
+          <TextInput
+            id='city'
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor='invoiceType'>{t('form.invoiceType', 'Type')}</Label>
+          <Select
+            id='invoiceType'
+            value={invoiceType}
+            onChange={(e) => setInvoiceType(Number(e.target.value))}
+          >
+            <option value={1}>{t('invoiceType.1', 'Invoice')}</option>
+            <option value={2}>{t('invoiceType.2', 'Proforma Invoice')}</option>
+            <option value={3}>{t('invoiceType.3', 'Offer')}</option>
           </Select>
-        </Form.Item>
-        <Table
-          dataSource={lines}
-          columns={[
-            {
-              title: t('form.invoiceLinesDescription', 'Description'),
-              dataIndex: 'description',
-              render: (_, record, index) => (
-                <Input
-                  value={record.description}
-                  onChange={(e) =>
-                    updateLine(index, 'description', e.target.value)
-                  }
-                />
-              ),
-            },
-            {
-              title: t('form.invoiceLinesQuantity', 'Quantity'),
-              dataIndex: 'quantity',
-              render: (_, record, index) => (
-                <InputNumber
-                  value={record.quantity}
-                  onChange={(value) =>
-                    value && updateLine(index, 'quantity', value)
-                  }
-                />
-              ),
-            },
-            {
-              title: t('form.invoiceLinesPrice', 'Price'),
-              dataIndex: 'price',
-              render: (_, record, index) => (
-                <InputNumber
-                  value={record.price}
-                  onChange={(value) =>
-                    value && updateLine(index, 'price', value)
-                  }
-                />
-              ),
-            },
-            {
-              title: t('form.invoiceLinesTotal', 'Total'),
-              dataIndex: 'total',
-              render: (total) => total.toFixed(2),
-            },
-            {
-              title: t('form.actions', 'Actions'),
-              render: (_, __, index) => (
-                <Button danger onClick={() => removeLine(index)}>
-                  {t('form.remove', 'Remove')}
-                </Button>
-              ),
-            },
-          ]}
-          pagination={false}
-          rowKey={(record) =>
-            record.id ? record.id.toString() : (record.tempId as string)
-          }
-        />
-        <Button type='dashed' onClick={addLine} block>
+        </div>
+
+        <Table className='mt-4'>
+          <Table.Head>
+            <Table.HeadCell>
+              {t('form.invoiceLinesDescription', 'Description')}
+            </Table.HeadCell>
+            <Table.HeadCell>
+              {t('form.invoiceLinesQuantity', 'Quantity')}
+            </Table.HeadCell>
+            <Table.HeadCell>
+              {t('form.invoiceLinesPrice', 'Price')}
+            </Table.HeadCell>
+            <Table.HeadCell>
+              {t('form.invoiceLinesTotal', 'Total')}
+            </Table.HeadCell>
+            <Table.HeadCell>{t('form.actions', 'Actions')}</Table.HeadCell>
+          </Table.Head>
+          <Table.Body>
+            {lines.map((line, index) => (
+              <Table.Row key={line.tempId || line.id}>
+                <Table.Cell>
+                  <TextInput
+                    value={line.description}
+                    onChange={(e) =>
+                      updateLine(index, 'description', e.target.value)
+                    }
+                  />
+                </Table.Cell>
+                <Table.Cell>
+                  <TextInput
+                    type='number'
+                    value={line.quantity}
+                    onChange={(e) =>
+                      updateLine(index, 'quantity', Number(e.target.value))
+                    }
+                  />
+                </Table.Cell>
+                <Table.Cell>
+                  <TextInput
+                    type='number'
+                    value={line.price}
+                    onChange={(e) =>
+                      updateLine(index, 'price', Number(e.target.value))
+                    }
+                  />
+                </Table.Cell>
+                <Table.Cell>{line.total.toFixed(2)}</Table.Cell>
+                <Table.Cell>
+                  <Button color='red' onClick={() => removeLine(index)}>
+                    {t('form.remove', 'Remove')}
+                  </Button>
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
+
+        <Button type='button' color='blue' onClick={addLine} className='mt-4'>
           {t('form.addLine', 'Add Line')}
         </Button>
-        <Button type='primary' htmlType='submit'>
+        <Button type='submit' color='green' className='w-full mt-4'>
           {t('form.saveInvoice', 'Save Invoice')}
         </Button>
-      </Form>
+      </form>
     </div>
   );
 };
