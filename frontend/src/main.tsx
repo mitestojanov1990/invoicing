@@ -1,19 +1,19 @@
-// src/index.tsx
+// src/App.tsx or src/index.tsx
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import ReactDOM from 'react-dom';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
-import './i18n'; // your i18n config
-import 'antd/dist/reset.css';
-import './index.css';
+import { InvoiceProvider } from './contexts/InvoiceContext';
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+ReactDOM.render(
   <React.StrictMode>
     <AuthProvider>
-      <BrowserRouter>
+      <InvoiceProvider>
+        {' '}
+        {/* ✅ Wrap the whole app */}
         <App />
-      </BrowserRouter>
+      </InvoiceProvider>
     </AuthProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
+  document.getElementById('root')
 );
