@@ -1,7 +1,7 @@
 // src/pages/SignUpPage.tsx
 import React from 'react';
 import { Form, Input, Button, message } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -71,6 +71,10 @@ const SignUpPage: React.FC = () => {
           </Button>
         </Form.Item>
       </Form>
+      <div>
+        {t('form.haveAccount', 'Already have an account?')}{' '}
+        <Link to='/signin'>{t('form.signIn', 'Sign In')}</Link>
+      </div>
     </div>
   );
 };

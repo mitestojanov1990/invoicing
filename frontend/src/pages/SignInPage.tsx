@@ -1,9 +1,10 @@
 // src/pages/SignInPage.tsx
 import React from 'react';
 import { Form, Input, Button, message } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 interface SignInValues {
   email: string;
@@ -51,6 +52,13 @@ const SignInPage: React.FC = () => {
           </Button>
         </Form.Item>
       </Form>
+      <div className='mb-4'>
+        <GoogleSignInButton />
+      </div>
+      <div>
+        {t('form.noAccount', "Don't have an account?")}{' '}
+        <Link to='/signup'>{t('form.signUp', 'Sign Up')}</Link>
+      </div>
     </div>
   );
 };
