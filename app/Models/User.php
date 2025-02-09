@@ -14,6 +14,16 @@ class User
     public ?string $name;
     public ?string $google_id;
 
+    public static function findById(int $id): ?array
+    {
+        $pdo = getPDO();
+        $sql = "SELECT * FROM users WHERE id = :id LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':id' => $id]);
+        $user = $stmt->fetch();
+        return $user ?: null;
+    }
+
     public static function findByEmail(string $email): ?array
     {
         $pdo = getPDO();

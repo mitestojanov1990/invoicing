@@ -23,8 +23,11 @@ class AuthAPIController
 
     public function emailSignIn()
     {
-        $email = $_POST['email'] ?? '';
-        $password = trim($_POST['password'] ?? '');
+        $inputData = json_decode(file_get_contents("php://input"), true);
+    
+        $email = $inputData['email'] ?? '';
+        $password = $inputData['password'] ?? '';
+        
         if (empty($email) || empty($password)) {
             http_response_code(400);
             echo json_encode(['error' => 'Email and password are required']);
@@ -43,9 +46,11 @@ class AuthAPIController
 
     public function emailSignUp()
     {
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $name = $_POST['name'] ?? '';
+        $inputData = json_decode(file_get_contents("php://input"), true);
+    
+        $email = $inputData['email'] ?? '';
+        $password = $inputData['password'] ?? '';
+        $name = $inputData['name'] ?? '';
 
         if (empty($email) || empty($password) || empty($name)) {
             http_response_code(400);
@@ -68,6 +73,10 @@ class AuthAPIController
 
     private function generateJWT($userId)
     {
+        if (!isset($_ENV['JWT_SECRET']) || empty($_ENV['JWT_SECRET'])) {
+            throw new Exception('JWT secret key is missing.');
+        }
+        
         $payload = [
             "user_id" => $userId,
             "iat" => time(),
