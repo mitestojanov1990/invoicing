@@ -91,7 +91,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         title={t('layout.menu', 'Menu')}
         placement='left'
         onClose={() => setMobileMenuOpen(false)}
-        visible={mobileMenuOpen}
+        open={mobileMenuOpen}
       >
         <Menu
           mode='vertical'

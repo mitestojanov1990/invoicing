@@ -7,15 +7,9 @@ import React, {
   ReactNode,
 } from 'react';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 import { User } from '../interfaces';
-
-interface AuthContextType {
-  user: User | null;
-  setUser: (user: User | null) => void;
-  signIn: (email: string, password: string) => Promise<User>;
-  signUp: (name: string, email: string, password: string) => Promise<User>;
-  signOut: () => Promise<void>;
-}
+import { AuthContextType } from '../interfaces/AuthContextType';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -24,42 +18,78 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  // Fetch the authenticated user on app load
   useEffect(() => {
-    axios
-      .get('/api/auth/me')
-      .then((response) => setUser(response.data.user))
-      .catch(() => setUser(null)); // If not authenticated, reset user state
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+          localStorage.removeItem('authToken'); // Expired token, logout user
+          setUser(null);
+          return;
+        }
+
+        axios
+          .get('/api/auth/me', {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((response) => setUser(response.data.user))
+          .catch(() => {
+            localStorage.removeItem('authToken');
+            setUser(null);
+          });
+      } catch (error) {
+        console.error('Invalid token:', error);
+        localStorage.removeItem('authToken');
+        setUser(null);
+      }
+    }
   }, []);
 
-  // Sign in method
   const signIn = async (email: string, password: string): Promise<User> => {
-    const response = await axios.post<{ user: User }>('/api/auth/signin', {
-      email,
-      password,
-    });
-    setUser(response.data.user);
-    return response.data.user;
+    try {
+      const response = await axios.post('/api/auth/signin', {
+        email,
+        password,
+      });
+      const token = response.data.token;
+      localStorage.setItem('authToken', token);
+
+      const user = response.data.user;
+      setUser(user);
+      return user;
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw new Error('Invalid login credentials');
+    }
   };
 
-  // Sign up method
   const signUp = async (
     name: string,
     email: string,
     password: string
   ): Promise<User> => {
-    const response = await axios.post<{ user: User }>('/api/auth/signup', {
-      name,
-      email,
-      password,
-    });
-    setUser(response.data.user);
-    return response.data.user;
+    try {
+      const response = await axios.post('/api/auth/signup', {
+        name,
+        email,
+        password,
+      });
+      const token = response.data.token;
+      localStorage.setItem('authToken', token);
+
+      const user = response.data.user;
+      setUser(user);
+      return user;
+    } catch (error) {
+      console.error('Sign-up failed:', error);
+      throw new Error('Error creating account');
+    }
   };
 
-  // Sign out method
   const signOut = async (): Promise<void> => {
-    await axios.post('/api/auth/signout');
+    localStorage.removeItem('authToken');
+    delete axios.defaults.headers.common['Authorization'];
     setUser(null);
   };
 
@@ -70,7 +100,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   );
 };
 
-// Custom hook for consuming auth context
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {

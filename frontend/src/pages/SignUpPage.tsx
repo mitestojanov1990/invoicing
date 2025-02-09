@@ -1,7 +1,7 @@
 // src/pages/SignUpPage.tsx
 import React from 'react';
 import { Form, Input, Button, message } from 'antd';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -15,7 +15,7 @@ interface SignUpValues {
 const SignUpPage: React.FC = () => {
   const [form] = Form.useForm<SignUpValues>();
   const navigate = useNavigate();
-  const { setUser, signUp } = useAuth();
+  const { signUp } = useAuth();
   const { t } = useTranslation();
 
   const onFinish = async (values: SignUpValues) => {
@@ -24,12 +24,11 @@ const SignUpPage: React.FC = () => {
       return;
     }
     try {
-      const user = await signUp(values.name, values.email, values.password);
-      setUser(user);
+      await signUp(values.name, values.email, values.password);
       message.success(t('messages.signUpSuccess', 'Signed up successfully'));
       navigate('/invoices');
     } catch (error) {
-      console.log(error);
+      console.error(error);
       message.error(t('messages.signUpFailed', 'Sign up failed'));
     }
   };
@@ -72,10 +71,6 @@ const SignUpPage: React.FC = () => {
           </Button>
         </Form.Item>
       </Form>
-      <div>
-        {t('form.haveAccount', 'Already have an account?')}{' '}
-        <Link to='/signin'>{t('form.signIn', 'Sign In')}</Link>
-      </div>
     </div>
   );
 };

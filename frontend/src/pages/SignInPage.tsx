@@ -1,10 +1,9 @@
 // src/pages/SignInPage.tsx
 import React from 'react';
 import { Form, Input, Button, message } from 'antd';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
-import GoogleSignInButton from '../components/GoogleSignInButton';
 
 interface SignInValues {
   email: string;
@@ -14,17 +13,16 @@ interface SignInValues {
 const SignInPage: React.FC = () => {
   const [form] = Form.useForm<SignInValues>();
   const navigate = useNavigate();
-  const { setUser, signIn } = useAuth();
+  const { signIn } = useAuth();
   const { t } = useTranslation();
 
   const onFinish = async (values: SignInValues) => {
     try {
-      const user = await signIn(values.email, values.password);
-      setUser(user);
+      await signIn(values.email, values.password);
       message.success(t('messages.signInSuccess', 'Signed in successfully'));
       navigate('/invoices');
     } catch (error) {
-      console.log(error);
+      console.error(error);
       message.error(t('messages.signInFailed', 'Sign in failed'));
     }
   };
@@ -53,11 +51,6 @@ const SignInPage: React.FC = () => {
           </Button>
         </Form.Item>
       </Form>
-      <GoogleSignInButton />
-      <div>
-        {t('form.noAccount', "Don't have an account?")}{' '}
-        <Link to='/signup'>{t('form.signUp', 'Sign Up')}</Link>
-      </div>
     </div>
   );
 };
